@@ -3,7 +3,7 @@ set -e
 
 echo "--- DeepStream Installation Script for Jetson Orin Nano ---"
 
-echo "IMPORTANT: This script assumes you have already installed JetPack 6.1 GA on your Jetson Orin Nano."
+echo "IMPORTANT: This script assumes you have already installed JetPack 6.2  on your Jetson Orin Nano."
 echo "If you haven't, please do so using NVIDIA SDK Manager or by flashing the SD card image from:"
 echo "https://developer.nvidia.com/embedded/jetpack"
 echo ""
