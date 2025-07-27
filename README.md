@@ -12,17 +12,17 @@ Key Features:
 
 ### Prerequisites:
 
-* JetPack 6.2 GA (L4T 36.4) must be pre-installed on your Jetson Orin. This script does not flash your device; JetPack must be installed separately using NVIDIA SDK Manager or the appropriate SD card image.
+* JetPack 6.2 (L4T 36.4) must be pre-installed on your Jetson Orin. This script does not flash your device; JetPack must be installed separately using NVIDIA SDK Manager or the appropriate SD card image.
 * An active internet connection.
 
 ### Usage:
 
-Ensure JetPack 6.2 GA is installed on your Jetson Orin Nano.
+Ensure JetPack 6.2 is installed on your Jetson Orin Nano.
 
 Run the script:
 
 ```
-./install-deepstream.sh
+./install_deepstream.sh
 ```
 
 The script will prompt for sudo password as needed.
