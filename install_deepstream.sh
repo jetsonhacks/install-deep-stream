@@ -1,16 +1,15 @@
 #!/bin/bash
 set -e
 
-echo "--- DeepStream Installation Script for Jetson Orin Nano (APT Version) ---"
+echo "--- DeepStream Installation Script for Jetson Orin(APT Version) ---"
 
-echo "IMPORTANT: This script assumes you have already installed JetPack 6.1 GA on your Jetson Orin Nano."
+echo "IMPORTANT: This script assumes you have already installed JetPack 6.2 on your Jetson Orin."
 echo "If you haven't, please do so using NVIDIA SDK Manager or by flashing the SD card image from:"
 echo "https://developer.nvidia.com/embedded/jetpack"
 echo ""
 
 echo "--- Performing system update and upgrade ---"
 sudo apt update
-sudo apt upgrade -y
 echo ""
 
 echo "--- Ensuring ~/.local/bin is in PATH ---"
