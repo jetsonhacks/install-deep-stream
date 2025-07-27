@@ -21,10 +21,8 @@ else
     echo "~/.local/bin already found in PATH in ~/.bashrc. Skipping."
 fi
 
-# Source .bashrc to apply changes to the current script session
-# This is crucial for commands run later in *this* script to find executables in ~/.local/bin
-source ~/.bashrc
-echo "PATH updated for current session: $PATH"
+export PATH="$HOME/.local/bin:$PATH"
+echo "PATH for current script session updated to: $PATH"
 echo ""
 
 
