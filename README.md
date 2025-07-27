@@ -1,7 +1,6 @@
-# install-deep-stream
+# install-deepstream
 Install Deepstream on Jetson Orin Developer Kits
 
-# WIP
 This shell script automates the installation of NVIDIA DeepStream SDK 7.1 on a Jetson Orin device. It handles essential prerequisites, including common dependencies, a proactive fix for a known GLib issue (updating to version 2.76.6), and the installation of librdkafka for Kafka protocol support. Finally, it downloads and installs the DeepStream SDK from the NGC Catalog. Taken from: https://docs.nvidia.com/metropolis/deepstream/dev-guide/text/DS_Installation.html
 
 Key Features:
@@ -20,13 +19,6 @@ Key Features:
 
 Ensure JetPack 6.2 GA is installed on your Jetson Orin Nano.
 
-Download or copy the install-deepstream.sh script to your Jetson device.
-
-Make the script executable:
-
-```
-chmod +x install-deepstream.sh
-```
 Run the script:
 
 ```
