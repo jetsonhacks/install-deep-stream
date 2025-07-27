@@ -89,6 +89,47 @@ install_glib() {
     echo ""
 }
 
+# --- Function to install librdkafka ---
+install_librdkafka() {
+    echo "--- Installing librdkafka (for Kafka protocol adaptor) ---"
+    local LIBRDKAFKA_VERSION="v2.2.0"
+    local LIBRDKAFKA_DIR="librdkafka"
+
+    # Check if librdkafka directory already exists to avoid cloning again if script is re-run
+    if [ ! -d "$LIBRDKAFKA_DIR" ]; then
+        git clone https://github.com/confluentinc/librdkafka.git "$LIBRDKAFKA_DIR" || { echo "ERROR: Failed to clone librdkafka repository."; exit 1; }
+    else
+        echo "librdkafka source directory already exists. Ensuring correct version and a clean state."
+        local current_librdkafka_dir=$(pwd) # Store current dir before changing to librdkafka
+        cd "$LIBRDKAFKA_DIR"
+
+        git fetch origin || { echo "ERROR: Failed to fetch librdkafka updates."; exit 1; }
+        git clean -dfx || { echo "Warning: Failed to git clean librdkafka repository."; }
+        cd "$current_librdkafka_dir" # Return to the original directory
+    fi
+
+    # Store current directory to return after librdkafka operations
+    local original_dir=$(pwd)
+    cd "$LIBRDKAFKA_DIR"
+
+    # Always checkout the specific target version to ensure consistency and avoid detached HEAD issues
+    echo "Checking out librdkafka version ${LIBRDKAFKA_VERSION}..."
+    git checkout "${LIBRDKAFKA_VERSION}" || { echo "ERROR: Failed to checkout librdkafka version ${LIBRDKAFKA_VERSION}."; exit 1; }
+
+    echo "Configuring librdkafka..."
+    ./configure --enable-ssl || { echo "ERROR: librdkafka configure failed."; exit 1; }
+    echo "Building librdkafka..."
+    make || { echo "ERROR: librdkafka make failed."; exit 1; }
+    echo "Installing librdkafka..."
+    sudo make install || { echo "ERROR: librdkafka make install failed."; exit 1; }
+    sudo ldconfig
+
+    cd "$original_dir" # Go back to the original directory
+    echo "librdkafka installation complete."
+    echo ""
+}
+
+
 # --- Call the GLib installation function ---
 install_glib
 
@@ -108,23 +149,9 @@ libgstrtspserver-1.0-0 \
 libjansson4 \
 libyaml-cpp-dev
 
-echo "--- Installing librdkafka (for Kafka protocol adaptor) ---"
-# Check if librdkafka directory already exists to avoid cloning again if script is re-run
-if [ ! -d "librdkafka" ]; then
-    git clone https://github.com/confluentinc/librdkafka.git
-else
-    echo "librdkafka source directory already exists. Attempting to update it."
-    (cd librdkafka && git pull)
-fi
-# Store current directory to return after librdkafka operations
-original_dir=$(pwd)
-cd librdkafka
-git checkout v2.2.0
-./configure --enable-ssl
-make
-sudo make install
-sudo ldconfig
-cd "$original_dir" # Go back to the original directory
+# --- Call the librdkafka installation function ---
+install_librdkafka
+
 
 echo "--- Installing DeepStream SDK v7.1.0 ---"
 # Define DeepStream tar package details
