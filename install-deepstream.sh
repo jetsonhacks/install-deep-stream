@@ -12,6 +12,22 @@ echo "--- Performing system update and upgrade ---"
 sudo apt update
 echo ""
 
+echo "--- Ensuring ~/.local/bin is in PATH for current and future sessions ---"
+# Check if the line already exists in .bashrc
+if ! grep -q 'export PATH="$HOME/.local/bin:$PATH"' ~/.bashrc; then
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
+    echo "Added ~/.local/bin to PATH in ~/.bashrc"
+else
+    echo "~/.local/bin already found in PATH in ~/.bashrc. Skipping."
+fi
+
+# Source .bashrc to apply changes to the current script session
+# This is crucial for commands run later in *this* script to find executables in ~/.local/bin
+source ~/.bashrc
+echo "PATH updated for current session: $PATH"
+echo ""
+
+
 # --- Function to install or update GLib ---
 install_glib() {
     echo "--- Checking and potentially updating GLib ---"
