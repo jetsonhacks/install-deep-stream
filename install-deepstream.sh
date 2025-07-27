@@ -12,62 +12,73 @@ echo "--- Performing system update and upgrade ---"
 sudo apt update
 echo ""
 
-# --- GLib Issue Fix ---
-echo "--- Checking and potentially updating GLib ---"
+# --- Function to install or update GLib ---
+install_glib() {
+    echo "--- Checking and potentially updating GLib ---"
 
-# Get current GLib version
-CURRENT_GLIB_VERSION=$(pkg-config --modversion glib-2.0 2>/dev/null || echo "0.0.0")
-TARGET_GLIB_VERSION="2.76.6"
+    # Get current GLib version
+    CURRENT_GLIB_VERSION=$(pkg-config --modversion glib-2.0 2>/dev/null || echo "0.0.0")
+    TARGET_GLIB_VERSION="2.76.6"
 
-echo "Current GLib version: ${CURRENT_GLIB_VERSION}"
-echo "Target GLib version: ${TARGET_GLIB_VERSION}"
+    echo "Current GLib version: ${CURRENT_GLIB_VERSION}"
+    echo "Target GLib version: ${TARGET_GLIB_VERSION}"
 
-# Compare versions. Using awk for robust version comparison.
-# This logic checks if CURRENT_GLIB_VERSION is numerically less than TARGET_GLIB_VERSION
-if awk -v current="$CURRENT_GLIB_VERSION" -v target="$TARGET_GLIB_VERSION" 'BEGIN {
-    if (current == "0.0.0") { print 1; exit; } # Force update if pkg-config failed
-    split(current, c, ".");
-    split(target, t, ".");
-    for (i=1; i<=3; i++) {
-        if (c[i] < t[i]) { print 1; exit; }
-        if (c[i] > t[i]) { print 0; exit; }
-    }
-    print 0; # Versions are equal or current is greater
-}' | grep -q 1; then
-    echo "GLib version is older than ${TARGET_GLIB_VERSION} or not found. Proceeding with update."
+    # Compare versions. Using awk for robust version comparison.
+    # This logic checks if CURRENT_GLIB_VERSION is numerically less than TARGET_GLIB_VERSION
+    if awk -v current="$CURRENT_GLIB_VERSION" -v target="$TARGET_GLIB_VERSION" 'BEGIN {
+        if (current == "0.0.0") { print 1; exit; } # Force update if pkg-config failed
+        split(current, c, ".");
+        split(target, t, ".");
+        for (i=1; i<=3; i++) {
+            if (c[i] < t[i]) { print 1; exit; }
+            if (c[i] > t[i]) { print 0; exit; }
+        }
+        print 0; # Versions are equal or current is greater
+    }' | grep -q 1; then
+        echo "GLib version is older than ${TARGET_GLIB_VERSION} or not found. Proceeding with update."
 
-    sudo apt install -y python3-pip git build-essential
+        sudo apt install -y python3-pip git build-essential
 
-    # Check if glib directory already exists to avoid cloning again if script is re-run
-    if [ ! -d "glib" ]; then
-        git clone https://github.com/GNOME/glib.git
+        # --- THIS LINE WAS THE MISSING PIECE! ---
+        pip3 install meson ninja
+
+        # Check if glib directory already exists to avoid cloning again if script is re-run
+        if [ ! -d "glib" ]; then
+            git clone https://github.com/GNOME/glib.git
+        else
+            echo "GLib source directory already exists. Attempting to update it."
+            (cd glib && git pull)
+        fi
+
+        # Store current directory to return after glib operations
+        local current_dir=$(pwd)
+        cd glib
+
+        git checkout "${TARGET_GLIB_VERSION}" # Checkout the specific version
+
+        echo "Configuring and building GLib..."
+        # Ensure build directory is clean if re-running
+        if [ -d "build" ]; then
+            rm -rf build
+        fi
+        meson build --prefix=/usr # Install to /usr
+        ninja -C build/
+
+        echo "Installing GLib..."
+        cd build/
+        sudo ninja install
+        sudo ldconfig # Update shared library cache
+
+        echo "GLib update complete. New GLib version: $(pkg-config --modversion glib-2.0)"
+        cd "$current_dir" # Go back to the original directory where the script was run from
     else
-        echo "GLib source directory already exists. Pulling latest changes."
-        (cd glib && git pull)
+        echo "GLib is already at or newer than ${TARGET_GLIB_VERSION}. Skipping GLib update."
     fi
+    echo ""
+}
 
-    cd glib
-    git checkout "${TARGET_GLIB_VERSION}" # Checkout the specific version
-
-    echo "Configuring and building GLib..."
-    # Ensure build directory is clean if re-running
-    if [ -d "build" ]; then
-        rm -rf build
-    fi
-    meson build --prefix=/usr # Install to /usr
-    ninja -C build/
-
-    echo "Installing GLib..."
-    cd build/
-    sudo ninja install
-    sudo ldconfig # Update shared library cache
-
-    echo "GLib update complete. New GLib version: $(pkg-config --modversion glib-2.0)"
-    cd ../.. # Go back to the original directory where the script was run from
-else
-    echo "GLib is already at or newer than ${TARGET_GLIB_VERSION}. Skipping GLib update."
-fi
-echo ""
+# --- Call the GLib installation function ---
+install_glib
 
 echo "--- Installing DeepStream Dependencies ---"
 sudo apt update # Re-run update to ensure latest package lists
@@ -90,16 +101,18 @@ echo "--- Installing librdkafka (for Kafka protocol adaptor) ---"
 if [ ! -d "librdkafka" ]; then
     git clone https://github.com/confluentinc/librdkafka.git
 else
-    echo "librdkafka source directory already exists. Pulling latest changes."
+    echo "librdkafka source directory already exists. Attempting to update it."
     (cd librdkafka && git pull)
 fi
+# Store current directory to return after librdkafka operations
+original_dir=$(pwd)
 cd librdkafka
 git checkout v2.2.0
 ./configure --enable-ssl
 make
 sudo make install
 sudo ldconfig
-cd .. # Go back to the original directory
+cd "$original_dir" # Go back to the original directory
 
 echo "--- Installing DeepStream SDK v7.1.0 ---"
 # Define DeepStream tar package details
