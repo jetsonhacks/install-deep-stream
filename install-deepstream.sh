@@ -73,7 +73,7 @@ install_glib() {
         if [ -d "build" ]; then
             rm -rf build
         fi
-        meson build --prefix=/usr # Install to /usr
+        meson build --prefix=/usr -Dcpp_std=c++11 || { echo "ERROR: meson build failed. Check error messages above."; exit 1; }
         ninja -C build/
 
         echo "Installing GLib..."
