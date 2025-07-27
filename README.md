@@ -1,2 +1,4 @@
 # install-deep-stream
-Intall Deepstream on Jetson Orin Developer Kits
+Install Deepstream on Jetson Orin Developer Kits
+
+# WIP
