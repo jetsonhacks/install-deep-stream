@@ -52,9 +52,7 @@ install_glib() {
         echo "GLib version is older than ${TARGET_GLIB_VERSION} or not found. Proceeding with update."
 
         sudo apt install -y python3-pip git build-essential
-
-        # --- THIS LINE WAS THE MISSING PIECE! ---
-        pip3 install meson ninja
+        sudo pip3 install meson ninja
 
         # Check if glib directory already exists to avoid cloning again if script is re-run
         if [ ! -d "glib" ]; then
@@ -80,7 +78,7 @@ install_glib() {
 
         echo "Installing GLib..."
         cd build/
-        sudo "$HOME/.local/bin/ninja" install || { echo "ERROR: ninja install failed. Check error messages above."; exit 1; }
+        sudo ninja install || { echo "ERROR: ninja install failed. Check error messages above."; exit 1; }
         sudo ldconfig # Update shared library cache
 
         echo "GLib update complete. New GLib version: $(pkg-config --modversion glib-2.0)"
