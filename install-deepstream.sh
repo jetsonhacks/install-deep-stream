@@ -80,7 +80,7 @@ install_glib() {
 
         echo "Installing GLib..."
         cd build/
-        sudo ninja install
+        sudo "$HOME/.local/bin/ninja" install || { echo "ERROR: ninja install failed. Check error messages above."; exit 1; }
         sudo ldconfig # Update shared library cache
 
         echo "GLib update complete. New GLib version: $(pkg-config --modversion glib-2.0)"
